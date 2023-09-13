@@ -1,0 +1,43 @@
+Malachi Eberly
+Assignment 1: RL Loop 
+    
+    For this problem, the agents would be three bots: one in charge of
+advertising to individuals under 18, one for individuals 18-30, and one
+for individuals older than 30. I think having three bots instead of one
+will be helpful because the effective strategies will vary significantly
+across people of different ages, and this breakdown will also vary 
+depending on the product.
+
+    For the action space, we'll say the three possible actions are
+broadcasting a TV commercial, broadcasting a radio commercial, or mailing 
+a flyer. Different actions may be taken more than others for different 
+bots. For example, more flyers and radio commercials may be used by the 
+bots for ages 30+, and more TV commercials may be used by the bot for ages 
+under 18 to reach the greatest number of people. This however may present 
+challenges, such as deciding what to show in these advertisements, how long 
+to make them to keep interest, and knowing how effective each action is for 
+the audience.
+
+    The state can be broken down into multiple parts. The agent state is 
+dependent on what studies, statistics, research, past marketing strategies, 
+and results are available. This history can be used to determine what state 
+the bots should have, which makes their state a function of history.
+
+    The environment state will encapsulate aspects such as how popular the 
+products are, how many people know about them already, who the product appeals 
+to most, etc. However, a lot of this information must be guessed or found 
+through research, which may have flaws. This makes the environment state only 
+partially observable, and the agents end up with a small subset of the 
+environment state, which makes up their information state.
+
+    The reward should be separated into two categories: making profit and 
+gaining popularity. Profit is concrete and easy to measure, and since this is 
+the end goal of advertising, this should yield the greatest reward. Popularity 
+and knowledge of the product should also be rewarded because it often leads 
+to greater profits. This also presents a few challenges. One challenge is that 
+popularity is hard to measure, and it is dependent on research that is difficult
+to gather and polls that may include bias while being collected. Another challenge 
+is taking into account how short-term losses may lead to greater long-term 
+profits. This sequential decision making means that rewards can be delayed, and 
+the agents might be punished for a decision that loses money in the moment but 
+could lead to more profit, including spending money on the advertisements.
