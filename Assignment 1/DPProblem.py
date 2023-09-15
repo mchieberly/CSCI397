@@ -1,24 +1,29 @@
 # Malachi Eberly
 # Assignment 1: DP Problem
 
+OUTPUT = 0
+
 def waterTrapped(input):
-    maxHeight = max(input)
-    output = 0
-    currentList = input
-    for i in range(maxHeight):
-        # Remove leading zeros
-        while currentList and currentList[0] == 0:
-            currentList.pop(0)
-        # Remove trailing zeros
-        while currentList and currentList[-1] == 0:
-            currentList.pop()
-        # Add the number of remaining zeros to total
-        for j in range(len(currentList)):
-            if currentList[j] == 0:
-                output += 1
-            else:
-                currentList[j] -= 1
-    return output
+    global OUTPUT
+
+    # If we finished the last level, we can return out counted blocks of water
+    if max(input) == 0:
+        return OUTPUT
+    
+    # Remove leading zeros
+    while input and input[0] == 0:
+        input.pop(0)
+    # Remove trailing zeros
+    while input and input[-1] == 0:
+        input.pop()
+    # Add the number of remaining zeros to total
+    for j in range(len(input)):
+        if input[j] == 0:
+            OUTPUT += 1
+        else:
+            input[j] -= 1
+
+    return waterTrapped(input)
 
 def main():
     input = [0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]
