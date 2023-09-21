@@ -1,6 +1,8 @@
 # Malachi Eberly
 # Class for the agent
 
+import island
+
 class Agent():
     def __init__(self, location, foundTreasure = 0):
         self.location = location
@@ -8,7 +10,6 @@ class Agent():
         self.foundTreasure = foundTreasure
 
     def move(self, location):
-        # Make sure that the specified location is a possible move
         self.location = location
         self.reward -= 1
 
