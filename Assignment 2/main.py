@@ -49,13 +49,14 @@ def main():
             nextIsland = random.choices(locations, probabilityMatrix[traveler.location.index])[0]
             traveler.move(nextIsland)
             reward = (GAMMA ** timestep) * -1
+            timestep += 1
             history.append((round(reward, 2), traveler.location.name + " Island", "move"))
 
-            if timestep == 25:
-                simEnd = "reached 25 time-steps"
-                break
             if traveler.location == s12:
                 simEnd = "reached terminal state"
+                break
+            if timestep == 25:
+                simEnd = "reached 25 time-steps"
                 break
 
             reward = 0
@@ -63,14 +64,13 @@ def main():
                 traveler.dig()
                 if traveler.foundTreasure > currentTreasure:
                     currentTreasure = traveler.foundTreasure
-                reward = (GAMMA ** timestep) * 2
+                    reward = (GAMMA ** timestep) * 2
+                timestep += 1
                 history.append((round(reward, 2), traveler.location.name + " Island", "dig"))
                 
             if timestep == 25:
                 simEnd = "reached 25 time-steps"
                 break
-            
-            timestep += 1
 
         totalReward = 0
         for step in history:

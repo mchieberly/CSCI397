@@ -9,6 +9,7 @@ class Island():
 
     def checkIsland(self):
         if self.treasure == "treasure!":
+            self.treasure = "none"
             return True
         return False
     
