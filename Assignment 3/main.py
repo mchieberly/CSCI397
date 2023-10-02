@@ -20,7 +20,7 @@ def main():
                          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0]])
     
     # Islands 5, 7, and 10 have treasure, so they have a positive reward
-    rewardMatrix = np.array([[0], [-1], [-1], [-1], [2], [-1], [2], [-1], [-1], [2], [-1], [15]])
+    rewardMatrix = np.array([[-1], [-1], [-1], [-1], [2], [-1], [2], [-1], [-1], [2], [-1], [15]])
     identity = np.identity(12)
 
     # Close form Bellman equation
