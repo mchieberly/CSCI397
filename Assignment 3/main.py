@@ -1,10 +1,7 @@
 # Malachi Eberly
 # Assignent 3: Incorporate the value function
 
-import random
 import numpy as np
-import numpy.linalg
-
 
 GAMMA = 0.95
 
@@ -33,8 +30,10 @@ def main():
     for i in range(len(values)):
         values[i][0] = round(values[i][0], 2)
     
+    i = 1
     for v in values:
-        print(v[0])
+        print("Value of moving to island s", i, ": ", v[0], sep = "")
+        i += 1
 
 if __name__ == "__main__":
     main()
