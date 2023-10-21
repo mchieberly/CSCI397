@@ -37,28 +37,25 @@ class Agent:
     def extract_policy(self):
         policy = [np.zeros(self.num_states, dtype=int)]
         for state in range(self.num_states):
-            q_values = np.zeros(self.num_actions)
-            for action in range(self.num_actions):
-                continue
-            # append action to the policy
+            policy[state] = self.select_action(state)
         return policy
 
     def calc_action_value(self, state, action):
-        # get target counts which access transits by state, action
-        # get the sum of all the counts
-        # for each target state
-            # calculate the proportion of reward plus gamma * value of the target state, then sum it all together. 
-        # return that sum
-        pass
+        action_values = np.zeros(self.num_actions)
+        for action in range(self.num_actions):
+            for probability, next_state, reward, finished in self.env.P[state][action]:
+                action_values[action] += probability * (reward + GAMMA * self.values[next_state])
+        return np.argmax(action_values)
 
     def select_action(self, state):
-        # define best action and best value
-        # For action in the range of actions
-            # calculate the action value
-            # if best value is less than action value
-                # update best value and best action
-        # return best action
-        pass
+        best_action = 0
+        best_action_value = self.calc_action_value(state, best_action)
+        for action in range(1, self.num_actions):
+            action_value = self.calc_action_value(state, action)
+            if action_value > best_action_value:
+                best_action_value = action_value
+                best_action = action
+        return best_action
 
     def play_episode(self, env):
         # define reward and state
@@ -78,6 +75,10 @@ class Agent:
         pass
 
     def value_iteration(self):
+        action_values = []
+        for state in self.num_states:
+            self.select_action(state)
+        self
         # for each state
             # set state_values equalt to a list of calc_action_value for every action
         # set self values to the max state_values         
