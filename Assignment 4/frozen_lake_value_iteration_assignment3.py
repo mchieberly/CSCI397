@@ -9,94 +9,94 @@ GAMMA = 0.9
 TEST_EPISODES = 20
 SEED = 42
 
-
 class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
-        self.num_states = self.env.observation_space.n
-        self.num_actions = self.env.action_space.n
-        self.values = np.zeros(self.num_states)
+        self.state = self.env.reset()
+        self.rewards = {}
+        self.transits = {}
+        self.values = np.zeros(self.env.observation_space.n)
 
     def update_transits_rewards(self, state, action, new_state, reward):
-        # Get the key, which is a state action pair
-        # update rewards which is accessed by key plus the new state
-        # update transits count which is accessed by key and new_state
-        pass
+        key = (state, action)
+        if key not in self.rewards:
+            self.rewards[key] = 0
+        self.rewards[key] += reward
+        if key not in self.transits:
+            self.transits[key] = {}
+        if new_state not in self.transits[key]:
+            self.transits[key][new_state] = 0
+        self.transits[key][new_state] += 1
 
     def play_n_random_steps(self, count):
         for _ in range(count):
-            # get an action
-            # step through the environment
-            # update the transits rewards
-            # update the state
-            pass
+            action = self.env.action_space.sample()
+            self.env.render()
+            new_state, reward, done, truncated, info = self.env.step(action)
+            self.update_transits_rewards(self.state, action, new_state, reward)
+            self.state = new_state
+        self.env.close()
 
     def print_value_table(self):
        print(self.values)
 
     def extract_policy(self):
-        policy = [np.zeros(self.num_states, dtype=int)]
-        for state in range(self.num_states):
+        policy = [np.zeros(self.env.observation_space.n, dtype=int)]
+        for state in range(self.env.observation_space.n):
             policy[state] = self.select_action(state)
         return policy
 
     def calc_action_value(self, state, action):
-        action_values = np.zeros(self.num_actions)
-        for action in range(self.num_actions):
+        action_values = np.zeros(self.env.action_space.n)
+        for action in range(self.env.action_space.n):
             for probability, next_state, reward, finished in self.env.P[state][action]:
                 action_values[action] += probability * (reward + GAMMA * self.values[next_state])
         return np.argmax(action_values)
 
     def select_action(self, state):
-        best_action = 0
-        best_action_value = self.calc_action_value(state, best_action)
-        for action in range(1, self.num_actions):
+        best_action = self.env.action_space.sample()
+        best_action_value = -float("-inf")
+        for action in range(self.env.action_space.ns):
             action_value = self.calc_action_value(state, action)
             if action_value > best_action_value:
                 best_action_value = action_value
                 best_action = action
         return best_action
 
-    def play_episode(self, env):
-        # define reward and state
-        # While loop
-            # select an action
-            # take a step
-            # if state is multiple
-                # update reward
-                # update count
-            # else
-                # update reward
-                # update count
-            # update total reward
-            # get out if we're done
-            # set state to new state
-        # return total reward
-        pass
+    def play_episode(self):
+        total_reward = 0
+        state = self.env.reset()
+        while not done:
+            action = self.select_action(state)
+            new_state, reward, done, truncated, info = self.env.step(action)
+            total_reward += reward
+            self.update_transits_rewards(state, action, new_state, reward)
+            if done or truncated:
+                break
+            state = new_state
+        return total_reward
 
     def value_iteration(self):
-        action_values = []
-        for state in self.num_states:
-            self.select_action(state)
-        self
-        # for each state
-            # set state_values equalt to a list of calc_action_value for every action
-        # set self values to the max state_values         
-
-        pass
-
+        for state in range(self.env.observation_space.n):
+            best_action = self.env.action_space[0]
+            best_action_value = self.calc_action_value(state, best_action)
+            for action in range(1, self.env.action_space.n):
+                action_value = self.calc_action_value(state, action)
+                if action_value > best_action_value:
+                    best_action_value = action_value
+            self.values[state] = best_action_value
 
 if __name__ == "__main__":
     agent = Agent()
 
     iter_no = 0
-    best_reward = None
+    best_reward = -float('inf')
     while True:
         iter_no += 1
         agent.play_n_random_steps(100)
         agent.value_iteration()
 
-        reward = None # sum of play episode for all 20 episodes / number of episodes
+        reward = sum(agent.play_episode(agent.env) for _ in range(TEST_EPISODES)) / TEST_EPISODES
         
         if reward > best_reward:
             print("Best reward updated %.3f -> %.3f" % (best_reward, reward))
