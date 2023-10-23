@@ -2,7 +2,7 @@
 # Assignment 4: Frozen Lake Value Iteration
 
 import gymnasium as gym
-import numpy as np
+import collections
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
@@ -11,19 +11,19 @@ SEED = 42
 
 class Agent:
     def __init__(self):
-        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
-        self.state = self.env.reset()
+        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", render_mode = "human", is_slippery=True)
+        self.state = self.env.reset(seed=SEED)
         self.rewards = {}
         self.transits = {}
-        self.values = np.zeros(self.env.observation_space.n)
+        self.values = [0.0] * self.env.observation_space.n
 
     def update_transits_rewards(self, state, action, new_state, reward):
         key = (state, action)
-        if key not in self.rewards:
-            self.rewards[key] = 0
-        self.rewards[key] += reward
+        if type(state) == tuple:
+            key = (state[0], action)
         if key not in self.transits:
             self.transits[key] = {}
+        self.rewards[key, new_state] = reward
         if new_state not in self.transits[key]:
             self.transits[key][new_state] = 0
         self.transits[key][new_state] += 1
@@ -35,23 +35,33 @@ class Agent:
             new_state, reward, done, truncated, info = self.env.step(action)
             self.update_transits_rewards(self.state, action, new_state, reward)
             self.state = new_state
+            if done:
+                self.state = self.env.reset(seed=SEED)
         self.env.close()
 
     def print_value_table(self):
-       print(self.values)
+        print("Value Table:")
+        for state in range(self.env.observation_space.n):
+            if state % 4 == 0:  # Assuming the FrozenLake environment has a 4x4 grid
+                print("\n")
+            print(f"State {state}: {self.values[state]:.3f}\t", end="")
+        print("\n")
 
     def extract_policy(self):
-        policy = [np.zeros(self.env.observation_space.n, dtype=int)]
+        policy = {}
         for state in range(self.env.observation_space.n):
-            policy[state] = self.select_action(state)
+            best_action = self.select_action(state)
+            policy[state] = best_action
         return policy
 
     def calc_action_value(self, state, action):
-        action_values = np.zeros(self.env.action_space.n)
-        for action in range(self.env.action_space.n):
-            for probability, next_state, reward, finished in self.env.P[state][action]:
-                action_values[action] += probability * (reward + GAMMA * self.values[next_state])
-        return np.argmax(action_values)
+        action_value = 0.0
+        for new_state in range(self.env.observation_space.n):
+            transition_prob = self.transits[(state, action)][new_state] / sum(self.transits[(state, action)].values())
+            immediate_reward = self.rewards.get((state, action, new_state), 0.0)
+            future_reward = self.values[new_state]
+            action_value += transition_prob * (immediate_reward + GAMMA * future_reward)
+        return action_value
 
     def select_action(self, state):
         best_action = self.env.action_space.sample()
@@ -65,27 +75,28 @@ class Agent:
 
     def play_episode(self):
         total_reward = 0
-        state = self.env.reset()
+        state = self.env.reset(seed=SEED)
+        done = False
         while not done:
             action = self.select_action(state)
             new_state, reward, done, truncated, info = self.env.step(action)
             total_reward += reward
             self.update_transits_rewards(state, action, new_state, reward)
             if done or truncated:
+                print("Ended")
                 break
             state = new_state
         return total_reward
 
+
     def value_iteration(self):
         for state in range(self.env.observation_space.n):
-            best_action = self.env.action_space[0]
-            best_action_value = self.calc_action_value(state, best_action)
-            for action in range(1, self.env.action_space.n):
+            state_values = []
+            for action in range(self.env.action_space.n):
                 action_value = self.calc_action_value(state, action)
-                if action_value > best_action_value:
-                    best_action_value = action_value
-            self.values[state] = best_action_value
-
+                state_values.append(action_value)
+            self.values[state] = max(state_values)
+            
 if __name__ == "__main__":
     agent = Agent()
 
