@@ -14,11 +14,11 @@ class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
         self.state = 0
-        self.nStates = self.env.observation_space.n
-        self.nActions = self.env.action_space.n
         self.actions = {0 : "Left", 1 : "Down", 2 : "Right", 3 : "Up"}
         self.rewards = defaultdict(lambda: defaultdict(lambda: 0))
         self.transits = defaultdict(lambda: Counter())
+        self.nStates = self.env.observation_space.n
+        self.nActions = self.env.action_space.n
         self.values = np.zeros(self.nStates)
 
     def update_transits_rewards(self, state, action, new_state, reward):
@@ -27,22 +27,23 @@ class Agent:
         self.transits[key][new_state] += 1
 
     def play_n_random_steps(self, count):
-        new_state, info = self.env.reset(seed=SEED)
+        self.env.reset(seed=SEED)
         for _ in range(count):
             action = self.env.action_space.sample()
             new_state, reward, terminated, truncated, info = self.env.step(action)
             self.update_transits_rewards(self.state, action, new_state, reward)
+            if terminated or truncated:
+                self.env.reset(seed=SEED)
+                self.state = 0
+                continue
             self.state = new_state
-        if terminated or truncated:
-            new_state, info = self.env.reset(seed=SEED)
-            self.state = 0
 
     def print_value_table(self):
         print("Value Table:", end = "")
         for state in range(self.env.observation_space.n):
             if state % 4 == 0:
                 print("\n")
-            print(f"{self.values[state]:.3f}\t", end="")
+            print(f"{self.values[state]:.3f}  ", end="")
         print("\n")
 
     def extract_policy(self):
@@ -58,7 +59,7 @@ class Agent:
         for i, value in enumerate(policy):
             if i % 4 == 0:
                 printed_policy += '\n'
-            printed_policy += " {} ".format(self.actions[value])
+            printed_policy += " {:>5} ".format(self.actions[value])
         print(printed_policy)
 
     def calc_action_value(self, state, action):
@@ -82,7 +83,7 @@ class Agent:
         return best_action
 
     def play_episode(self):
-        new_state, info = self.env.reset(seed=SEED)
+        self.env.reset(seed=SEED)
         total_reward = 0
         state = 0
         count = 0
@@ -93,7 +94,7 @@ class Agent:
             total_reward += reward
             count += 1
             if done or truncated:
-                new_state, info = self.env.reset(seed=SEED)
+                self.env.reset(seed=SEED)
                 break
             state = new_state
         return total_reward
