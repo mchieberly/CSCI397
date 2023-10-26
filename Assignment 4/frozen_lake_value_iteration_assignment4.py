@@ -2,13 +2,12 @@
 # Assignment 4: Frozen Lake Value Iteration
 
 import gymnasium as gym
-from collections import Counter, defaultdict
+from collections import defaultdict
 import numpy as np
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
 TEST_EPISODES = 20
-SEED = 42
 
 class Agent:
     def __init__(self):
@@ -16,25 +15,24 @@ class Agent:
         self.state = 0
         self.actions = {0 : "Left", 1 : "Down", 2 : "Right", 3 : "Up"}
         self.rewards = defaultdict(lambda: defaultdict(lambda: 0))
-        self.transits = defaultdict(lambda: Counter())
+        self.transits = defaultdict(lambda: defaultdict(lambda: 0))
         self.nStates = self.env.observation_space.n
         self.nActions = self.env.action_space.n
         self.values = np.zeros(self.nStates)
 
     def update_transits_rewards(self, state, action, new_state, reward):
-        key = (state, action)
-        self.rewards[key][new_state] += reward
-        self.transits[key][new_state] += 1
+        self.rewards[(state, action)][new_state] += reward
+        self.transits[(state, action)][new_state] += 1
 
     def play_n_random_steps(self, count):
+        self.env.reset()
         self.state = 0
-        self.env.reset(seed=SEED)
         for _ in range(count):
             action = self.env.action_space.sample()
             new_state, reward, terminated, truncated, info = self.env.step(action)
             self.update_transits_rewards(self.state, action, new_state, reward)
             if terminated or truncated:
-                self.env.reset(seed=SEED)
+                self.env.reset()
                 self.state = 0
                 continue
             self.state = new_state
@@ -69,27 +67,26 @@ class Agent:
         print(printed_policy)
 
     def calc_action_value(self, state, action):
-        target_counts = self.transits[(state, action)]
-        sum_counts = sum(target_counts.values())
+        target_count = self.transits[(state, action)]
+        total_transitions = sum(target_count.values())
         action_value = 0
-        for ntransits in target_counts:
-            proportion = target_counts[ntransits] / sum_counts
-            reward = self.rewards[(state, action)][ntransits]
-            action_value += proportion * (reward + GAMMA * self.values[ntransits])
+        for next_state, count in target_count.items():
+            probability = count / total_transitions
+            action_value += probability * (self.rewards[(state, action)][next_state] + (GAMMA * self.values[next_state]))
         return action_value
-
+    
     def select_action(self, state):
-        best_action = 0 # This is important
-        best_action_value = 0
-        for action in range(self.nActions):
+        best_action = 0
+        best_action_value = self.calc_action_value(state, best_action)
+        for action in range(1, self.nActions):
             action_value = self.calc_action_value(state, action)
             if action_value > best_action_value:
                 best_action_value = action_value
                 best_action = action
         return best_action
-
+    
     def play_episode(self):
-        self.env.reset(seed=SEED)
+        self.env.reset()
         total_reward = 0
         self.state = 0
         while True:
@@ -98,13 +95,13 @@ class Agent:
             new_state, reward, done, truncated, info = self.env.step(action)
             total_reward += reward
             if done or truncated:
-                self.env.reset(seed=SEED)
+                self.env.reset()
                 break
             self.state = new_state
         return total_reward
 
     def value_iteration(self):
-        for state in range(self.nStates):
+        for state in range(self.nStates - 1):
             state_values = [self.calc_action_value(state, action) for action in range(self.nActions)]
             self.values[state] = max(state_values)
             
