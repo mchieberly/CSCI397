@@ -2,12 +2,12 @@
 # Assignment 4: Frozen Lake Value Iteration
 
 import gymnasium as gym
-from collections import Counter, defaultdict
+from collections import defaultdict
 import numpy as np
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
-TEST_EPISODES = 50
+TEST_EPISODES = 20
 
 class Agent:
     def __init__(self):
@@ -15,19 +15,18 @@ class Agent:
         self.state = 0
         self.actions = {0 : "Left", 1 : "Down", 2 : "Right", 3 : "Up"}
         self.rewards = defaultdict(lambda: defaultdict(lambda: 0))
-        self.transits = defaultdict(lambda: Counter())
+        self.transits = defaultdict(lambda: defaultdict(lambda: 0))
         self.nStates = self.env.observation_space.n
         self.nActions = self.env.action_space.n
         self.values = np.zeros(self.nStates)
 
     def update_transits_rewards(self, state, action, new_state, reward):
-        key = (state, action)
-        self.rewards[key][new_state] += reward
-        self.transits[key][new_state] += 1
+        self.rewards[(state, action)][new_state] += reward
+        self.transits[(state, action)][new_state] += 1
 
     def play_n_random_steps(self, count):
-        self.state = 0
         self.env.reset()
+        self.state = 0
         for _ in range(count):
             action = self.env.action_space.sample()
             new_state, reward, terminated, truncated, info = self.env.step(action)
