@@ -1,0 +1,72 @@
+Malachi Eberly
+Assignment 4 Analysis
+
+Here is the output of my program for when is_slippery = False:
+
+++++++++++++++++++++++++++++++++++++++
+Best reward updated 0.000 -> 1.000
+Solved in 5 iterations!
+Value Table:
+
+  0.000  0.656  0.729  0.656
+
+  0.656  0.000  0.810  0.000
+
+  0.729  0.810  0.900  0.000
+
+  0.000  0.900  1.000  0.000
+
+Policy:
+
+   Down  Right   Down   Left
+
+   Down   HOLE   Down   HOLE
+
+  Right   Down   Down   HOLE
+
+   HOLE  Right  Right   GOAL
+++++++++++++++++++++++++++++++++++++++
+
+It only took five iterations to converge, and the best average reward went right 
+from 0 to 1. The given policy always directs the agent in the most optimal path 
+towards the goal. The results for is_slippery = True were a bit different:
+
+++++++++++++++++++++++++++++++++++++++
+Best reward updated 0.000 -> 0.050
+Best reward updated 0.050 -> 0.150
+Best reward updated 0.150 -> 0.200
+Best reward updated 0.200 -> 0.250
+Best reward updated 0.250 -> 0.300
+Best reward updated 0.300 -> 0.350
+Best reward updated 0.350 -> 0.800
+Best reward updated 0.800 -> 0.900
+Solved in 176 iterations!
+Value Table:
+
+  0.942  0.772  0.888  0.666
+
+  1.301  0.000  1.406  0.000
+
+  2.176  3.597  3.917  0.000
+
+  0.000  5.465  7.903  0.000
+
+Policy:
+
+   Left     Up   Left     Up
+
+   Left   HOLE   Left   HOLE
+
+     Up   Down   Left   HOLE
+
+   HOLE  Right     Up   GOAL
+++++++++++++++++++++++++++++++++++++++
+
+This took 176 iterations, and the best average reward updated eight times,
+ending on 0.9. The given value table looks like it should still give the 
+optimal policy, but the policy looks much different from the previous one.
+This is because the agent is adapting to the stochastic behavior of sliding, 
+and how if it attempts to take an action one way, it has a 2/3 chance of 
+moving in a perpendicular direction instead. By learning this pattern, it 
+can optimize its policy to make the best intentional actions with the least
+consequence in sliding.
