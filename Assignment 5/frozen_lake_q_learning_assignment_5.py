@@ -26,12 +26,11 @@ class Agent:
         return (self.state, action, reward, new_state)
 
     def best_value_and_action(self, state):
-        # Initialize variables best_value and best_action to None
+        best_value, best_action = None, None
         # Iterate over all possible actions in the environment's action space
         # Calculate the Q-value for each state-action pair
         # Update best_value and best_action based on the calculated Q-value
-        # Return best_value and best_action
-        pass
+        return best_value, best_action
 
     def value_update(self, state, action, reward, new_state):
         # Call the best_value_and_action function to get the best Q-value for the new state
@@ -39,9 +38,9 @@ class Agent:
         # Update the Q-value of the current state-action pair using alpha and the new Q-value
         pass
 
-    def play_episode(self, env):
-        # Initialize a variable total_reward to 0.0
-        # Reset the environment and store the initial state
+    def play_episode(self):
+        total_reward = 0.0
+        self.state = self.env.reset()
         # Enter a loop that continues until the episode ends
         # Call the best_value_and_action function to get the best action for the current state
         # Take a step in the environment using the best action and store the new state, reward, and done flag
@@ -68,7 +67,6 @@ class Agent:
 
 
 if __name__ == "__main__":
-    test_env = gym.make(ENV_NAME)
     agent = Agent()
     writer = SummaryWriter(comment="-q-learning")
 
@@ -81,7 +79,7 @@ if __name__ == "__main__":
 
         cumulative_reward = 0.0
         for _ in range(TEST_EPISODES):
-            cumulative_reward += agent.play_episode(test_env)
+            cumulative_reward += agent.play_episode()
         cumulative_reward /= TEST_EPISODES
         writer.add_scalar("reward", cumulative_reward, iter_no)
         if cumulative_reward > best_reward:
