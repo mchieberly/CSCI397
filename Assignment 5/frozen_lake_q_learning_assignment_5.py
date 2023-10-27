@@ -1,5 +1,8 @@
+# Malachi Eberly
+# Assignment 5: Frozen Lake Q-Learning
+
 #!/usr/bin/env python3
-import gym
+import gymnasium as gym
 import collections
 from tensorboardX import SummaryWriter
 
@@ -11,17 +14,16 @@ TEST_EPISODES = 20
 
 class Agent:
     def __init__(self):
-        # Initialize the environment using gym.make with ENV_NAME
-        # Set the initial state by resetting the environment
-        # Initialize a default dictionary named values for storing the Q-values
-        pass
+        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
+        self.state = self.env.reset()
+        self.qtable = {}
 
     def sample_env(self):
-        # Sample a random action from the environment's action space
-        # Use the sampled action to take a step in the environment
-        # If the episode ends, reset the environment and store the new state
-        # Return a tuple containing the old state, action, reward, and new state
-        pass
+        action = self.env.action_space.sample()
+        new_state, reward, terminated, truncated, info = self.env.step(action)
+        if terminated or truncated:
+            self.state = self.env.reset()
+        return (self.state, action, reward, new_state)
 
     def best_value_and_action(self, state):
         # Initialize variables best_value and best_action to None
