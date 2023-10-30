@@ -16,7 +16,7 @@ class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
         self.state = self.env.reset()
-        self.qtable = {}
+        self.q_table = {}
         self.n_states = self.env.observation_space.n
         self.n_actions = self.env.action_space.n
 
@@ -28,18 +28,18 @@ class Agent:
         return (self.state, action, reward, new_state)
 
     def best_value_and_action(self, state):
-        best_value, best_action = None, None
+        best_value, best_action = float("-inf"), None
         for action in range(self.n_actions):
-
-        # Calculate the Q-value for each state-action pair
-        # Update best_value and best_action based on the calculated Q-value
+            q_value = self.q_table[state][action] # Calculate instead?
+            if q_value > best_value:
+                best_value, best_action = q_value, action
         return best_value, best_action
 
     def value_update(self, state, action, reward, new_state):
-        # Call the best_value_and_action function to get the best Q-value for the new state
+        best_value, best_action = self.best_value_and_action(new_state)
+        q_value = 
         # Calculate the new Q-value using the reward, gamma, and best Q-value of the new state
         # Update the Q-value of the current state-action pair using alpha and the new Q-value
-        pass
 
     def play_episode(self):
         total_reward = 0.0
@@ -51,24 +51,22 @@ class Agent:
             total_reward += reward
             if terminated or truncated:
                 break
-            state = new_state
+            self.state = new_state
         return total_reward
 
     def print_values(self):
-        # Print the Q-values in a readable format
+        # # Print the Q-values in a readable format
         # Hint: You can use nested loops to iterate over states and actions
         pass
 
     def print_policy(self):
-        # Print the policy derived from the Q-values
-        # Initialize an empty dictionary named policy
-        # Iterate over all possible states in the environment
-        # Call the best_value_and_action function to get the best action for each state
+        # # Print the policy derived from the Q-values
+        policy = {}
+        for state in range(self.n_states):
+                best_value, best_action = self.best_value_and_action(state)
         # Update the policy dictionary with the state-action pair
         # Print the state and corresponding best action
-        # Return the policy dictionary
-        pass
-
+        return policy
 
 if __name__ == "__main__":
     agent = Agent()
