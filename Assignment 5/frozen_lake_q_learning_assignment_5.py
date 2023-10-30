@@ -17,6 +17,8 @@ class Agent:
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
         self.state = self.env.reset()
         self.qtable = {}
+        self.n_states = self.env.observation_space.n
+        self.n_actions = self.env.action_space.n
 
     def sample_env(self):
         action = self.env.action_space.sample()
@@ -27,7 +29,8 @@ class Agent:
 
     def best_value_and_action(self, state):
         best_value, best_action = None, None
-        # Iterate over all possible actions in the environment's action space
+        for action in range(self.n_actions):
+
         # Calculate the Q-value for each state-action pair
         # Update best_value and best_action based on the calculated Q-value
         return best_value, best_action
@@ -41,14 +44,15 @@ class Agent:
     def play_episode(self):
         total_reward = 0.0
         self.state = self.env.reset()
-        # Enter a loop that continues until the episode ends
-        # Call the best_value_and_action function to get the best action for the current state
-        # Take a step in the environment using the best action and store the new state, reward, and done flag
-        # Update total_reward using the received reward
-        # If the episode ends, break from the loop
-        # Otherwise, update the state using the new state
-        # Return the total reward
-        pass
+        terminated, truncated = False, False
+        while True:
+            best_value, best_action = self.best_value_and_action(self.state)
+            new_state, reward, terminated, truncated, info = self.env.step(best_action)
+            total_reward += reward
+            if terminated or truncated:
+                break
+            state = new_state
+        return total_reward
 
     def print_values(self):
         # Print the Q-values in a readable format
