@@ -16,38 +16,37 @@ class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
         self.state = self.env.reset()
-        self.q_table = {}
+        self.q_table = collections.defaultdict(float)
         self.n_states = self.env.observation_space.n
         self.n_actions = self.env.action_space.n
 
     def sample_env(self):
         action = self.env.action_space.sample()
-        new_state, reward, terminated, truncated, info = self.env.step(action)
+        new_state, reward, terminated, truncated, _ = self.env.step(action)
         if terminated or truncated:
             self.state = self.env.reset()
-        return (self.state, action, reward, new_state)
+        return self.state, action, reward, new_state
 
     def best_value_and_action(self, state):
-        best_value, best_action = float("-inf"), None
+        best_value, best_action = None, None
         for action in range(self.n_actions):
-            q_value = self.q_table[state][action] # Calculate instead?
-            if q_value > best_value:
-                best_value, best_action = q_value, action
+            action_value = self.q_table[(state, action)]
+            if best_value is None or action_value > best_value:
+                best_value, best_action = action_value, action
         return best_value, best_action
 
     def value_update(self, state, action, reward, new_state):
-        best_value, best_action = self.best_value_and_action(new_state)
-        q_value = 
-        # Calculate the new Q-value using the reward, gamma, and best Q-value of the new state
-        # Update the Q-value of the current state-action pair using alpha and the new Q-value
+        best_new_value, _ = self.best_value_and_action(new_state)
+        new_q_value = reward + GAMMA * best_new_value
+        self.q_table[(state, action)] += ALPHA * (new_q_value - self.q_table[(state, action)])
 
     def play_episode(self):
         total_reward = 0.0
         self.state = self.env.reset()
         terminated, truncated = False, False
         while True:
-            best_value, best_action = self.best_value_and_action(self.state)
-            new_state, reward, terminated, truncated, info = self.env.step(best_action)
+            _, action = self.best_value_and_action(self.state)
+            new_state, reward, terminated, truncated, _ = self.env.step(action)
             total_reward += reward
             if terminated or truncated:
                 break
@@ -60,12 +59,11 @@ class Agent:
         pass
 
     def print_policy(self):
-        # # Print the policy derived from the Q-values
         policy = {}
         for state in range(self.n_states):
-                best_value, best_action = self.best_value_and_action(state)
-        # Update the policy dictionary with the state-action pair
-        # Print the state and corresponding best action
+            best_value, best_action = self.best_value_and_action(state)
+            policy[state] = best_action
+        print("State:", state, "and action:", best_action)
         return policy
 
 if __name__ == "__main__":
