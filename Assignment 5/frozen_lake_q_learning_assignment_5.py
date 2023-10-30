@@ -3,7 +3,7 @@
 
 #!/usr/bin/env python3
 import gymnasium as gym
-import collections
+from collections import defaultdict
 from tensorboardX import SummaryWriter
 
 ENV_NAME = "FrozenLake-v1"
@@ -14,9 +14,11 @@ TEST_EPISODES = 20
 
 class Agent:
     def __init__(self):
-        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=True)
+        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
         self.state = self.env.reset()
-        self.q_table = collections.defaultdict(float)
+        print(self.state) # Figure out how to set up states and q_table
+        exit()
+        self.q_table = defaultdict(lambda: defaultdict(float))
         self.n_states = self.env.observation_space.n
         self.n_actions = self.env.action_space.n
 
@@ -37,16 +39,16 @@ class Agent:
 
     def value_update(self, state, action, reward, new_state):
         best_new_value, _ = self.best_value_and_action(new_state)
-        new_q_value = reward + GAMMA * best_new_value
+        new_q_value = reward + (GAMMA * best_new_value)
         self.q_table[(state, action)] += ALPHA * (new_q_value - self.q_table[(state, action)])
 
     def play_episode(self):
         total_reward = 0.0
         self.state = self.env.reset()
-        terminated, truncated = False, False
         while True:
             _, action = self.best_value_and_action(self.state)
             new_state, reward, terminated, truncated, _ = self.env.step(action)
+            print(new_state)
             total_reward += reward
             if terminated or truncated:
                 break
@@ -61,7 +63,7 @@ class Agent:
     def print_policy(self):
         policy = {}
         for state in range(self.n_states):
-            best_value, best_action = self.best_value_and_action(state)
+            _, best_action = self.best_value_and_action(state)
             policy[state] = best_action
         print("State:", state, "and action:", best_action)
         return policy
