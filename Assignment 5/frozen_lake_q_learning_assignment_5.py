@@ -72,7 +72,7 @@ class Agent:
         for state in range(self.n_states):
             _, best_action = self.best_value_and_action(state)
             policy[state] = self.actions[best_action]
-        print("State", state, "has best action: move", self.actions[best_action])
+            print("State", state, "has best action: move", self.actions[best_action])
         return policy
 
 if __name__ == "__main__":
