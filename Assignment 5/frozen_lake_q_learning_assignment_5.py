@@ -22,9 +22,10 @@ class Agent:
     def sample_env(self):
         action = self.env.action_space.sample()
         new_state, reward, terminated, truncated, _ = self.env.step(action)
+        old_state = self.state
         if terminated or truncated:
             self.state = self.env.reset()
-        return self.state, action, reward, new_state
+        return old_state, action, reward, new_state
 
     def best_value_and_action(self, state):
         best_value, best_action = None, None
@@ -63,7 +64,7 @@ class Agent:
         for state in range(self.n_states):
             _, best_action = self.best_value_and_action(state)
             policy[state] = best_action
-        print("State:", state, "and action:", best_action)
+        print("State:", state, "has best action:", best_action)
         return policy
 
 if __name__ == "__main__":
