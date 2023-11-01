@@ -26,16 +26,16 @@ class Agent:
         new_state, reward, terminated, truncated, _ = self.env.step(action)
         old_state = self.state
         if terminated or truncated:
-            self.state = self.env.reset()
+            new_state = self.env.reset()
         return old_state, action, reward, new_state
 
     def best_value_and_action(self, state):
         best_value, best_action = None, None
         for action in range(self.n_actions):
             state = state[0] if type(state) is tuple else state
-            action_value = self.q_table[(state, action)]
-            if best_value is None or action_value > best_value:
-                best_value, best_action = action_value, action
+            q_value = self.q_table[(state, action)]
+            if best_value is None or q_value > best_value:
+                best_value, best_action = q_value, action
         return best_value, best_action
 
     def value_update(self, state, action, reward, new_state):
@@ -52,6 +52,7 @@ class Agent:
             new_state, reward, terminated, truncated, _ = self.env.step(action)
             total_reward += reward
             if terminated or truncated:
+                self.state = self.env.reset()
                 break
             self.state = new_state
         return total_reward
