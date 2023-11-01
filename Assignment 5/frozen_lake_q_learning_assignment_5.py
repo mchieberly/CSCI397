@@ -5,6 +5,7 @@
 import gymnasium as gym
 from collections import defaultdict
 from tensorboardX import SummaryWriter
+from tabulate import tabulate
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
@@ -18,6 +19,7 @@ class Agent:
         self.q_table = defaultdict(float)
         self.n_states = self.env.observation_space.n
         self.n_actions = self.env.action_space.n
+        self.actions = {0 : "Left", 1: "Down", 2 : "Right", 3 : "Up"}
 
     def sample_env(self):
         action = self.env.action_space.sample()
@@ -55,16 +57,22 @@ class Agent:
         return total_reward
 
     def print_values(self):
-        # # Print the Q-values in a readable format
-        # Hint: You can use nested loops to iterate over states and actions
-        pass
+        headers = ["State"] + [f"{self.actions[action]}" for action in range(self.n_actions)]
+        table_data = []
+        for state in range(self.n_states):
+            state_row = [f"{state}"]
+            for action in range(self.n_actions):
+                q_value = self.q_table[(state, action)]
+                state_row.append(f"{q_value:.3f}")
+            table_data.append(state_row)
+        print(tabulate(table_data, headers, tablefmt="grid"))
 
     def print_policy(self):
         policy = {}
         for state in range(self.n_states):
             _, best_action = self.best_value_and_action(state)
-            policy[state] = best_action
-        print("State:", state, "has best action:", best_action)
+            policy[state] = self.actions[best_action]
+            print("State", state, "has best action: move", self.actions[best_action])
         return policy
 
 if __name__ == "__main__":
@@ -89,6 +97,7 @@ if __name__ == "__main__":
         if cumulative_reward > 0.80:
             print("Solved in %d iterations!" % iter_no)
             break
+        agent.print_policy()
     writer.close()
 
     # Print the Q-values and extract/print the policy
