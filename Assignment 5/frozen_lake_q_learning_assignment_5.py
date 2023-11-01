@@ -11,14 +11,11 @@ GAMMA = 0.9
 ALPHA = 0.2
 TEST_EPISODES = 20
 
-
 class Agent:
     def __init__(self):
         self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
         self.state = self.env.reset()
-        print(self.state) # Figure out how to set up states and q_table
-        exit()
-        self.q_table = defaultdict(lambda: defaultdict(float))
+        self.q_table = defaultdict(float)
         self.n_states = self.env.observation_space.n
         self.n_actions = self.env.action_space.n
 
@@ -32,6 +29,7 @@ class Agent:
     def best_value_and_action(self, state):
         best_value, best_action = None, None
         for action in range(self.n_actions):
+            state = state[0] if type(state) is tuple else state
             action_value = self.q_table[(state, action)]
             if best_value is None or action_value > best_value:
                 best_value, best_action = action_value, action
@@ -40,6 +38,7 @@ class Agent:
     def value_update(self, state, action, reward, new_state):
         best_new_value, _ = self.best_value_and_action(new_state)
         new_q_value = reward + (GAMMA * best_new_value)
+        state = state[0] if type(state) is tuple else state
         self.q_table[(state, action)] += ALPHA * (new_q_value - self.q_table[(state, action)])
 
     def play_episode(self):
@@ -48,7 +47,6 @@ class Agent:
         while True:
             _, action = self.best_value_and_action(self.state)
             new_state, reward, terminated, truncated, _ = self.env.step(action)
-            print(new_state)
             total_reward += reward
             if terminated or truncated:
                 break
