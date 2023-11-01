@@ -66,13 +66,22 @@ class Agent:
                 state_row.append(f"{q_value:.3f}")
             table_data.append(state_row)
         print(tabulate(table_data, headers, tablefmt="grid"))
+        print()
 
     def print_policy(self):
+        print("Policy:")
         policy = {}
+        policy_grid = [['' for _ in range(4)] for _ in range(4)]
         for state in range(self.n_states):
+            row, col = divmod(state, 4)
             _, best_action = self.best_value_and_action(state)
+            policy_grid[row][col] = self.actions[best_action]
             policy[state] = self.actions[best_action]
-            print("State", state, "has best action: move", self.actions[best_action])
+        for row in range(4):
+            for col in range(4):
+                print(f"{policy_grid[row][col]:<6}", end=" ")
+            print()
+        print()
         return policy
 
 if __name__ == "__main__":
@@ -97,7 +106,6 @@ if __name__ == "__main__":
         if cumulative_reward > 0.80:
             print("Solved in %d iterations!" % iter_no)
             break
-        agent.print_policy()
     writer.close()
 
     # Print the Q-values and extract/print the policy
