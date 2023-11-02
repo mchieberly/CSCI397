@@ -14,7 +14,7 @@ TEST_EPISODES = 20
 
 class Agent:
     def __init__(self):
-        self.env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
+        self.env = gym.make(ENV_NAME, is_slippery=False)
         self.state = self.env.reset()
         self.q_table = defaultdict(float)
         self.n_states = self.env.observation_space.n
@@ -31,8 +31,8 @@ class Agent:
 
     def best_value_and_action(self, state):
         best_value, best_action = None, None
+        state = state[0] if type(state) is tuple else state
         for action in range(self.n_actions):
-            state = state[0] if type(state) is tuple else state
             q_value = self.q_table[(state, action)]
             if best_value is None or q_value > best_value:
                 best_value, best_action = q_value, action
@@ -41,7 +41,7 @@ class Agent:
     def value_update(self, state, action, reward, new_state):
         best_new_value, _ = self.best_value_and_action(new_state)
         state = state[0] if type(state) is tuple else state
-        new_q_value = self.q_table[(state, action)] + (ALPHA * (reward + (GAMMA * best_new_value) - self.q_table[(state, action)]))
+        new_q_value = self.q_table[(state, action)] + (ALPHA * (reward + GAMMA * best_new_value) - self.q_table[(state, action)])
         self.q_table[(state, action)] = new_q_value
 
     def play_episode(self, env):
@@ -58,6 +58,7 @@ class Agent:
         return total_reward
 
     def print_values(self):
+        print("Values:")
         headers = ["State"] + [f"{self.actions[action]}" for action in range(self.n_actions)]
         table_data = []
         for state in range(self.n_states):
@@ -86,7 +87,7 @@ class Agent:
         return policy
 
 if __name__ == "__main__":
-    test_env = gym.make(ENV_NAME, desc=None, map_name="4x4", is_slippery=False)
+    test_env = gym.make(ENV_NAME, render_mode = "human", is_slippery=False)
     agent = Agent()
     writer = SummaryWriter(comment="-q-learning")
 
