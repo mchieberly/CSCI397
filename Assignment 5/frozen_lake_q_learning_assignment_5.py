@@ -3,9 +3,10 @@
 
 #!/usr/bin/env python3
 import gymnasium as gym
-from collections import defaultdict
+import numpy as np
 from tensorboardX import SummaryWriter
 from tabulate import tabulate
+from random import random
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
@@ -14,11 +15,9 @@ TEST_EPISODES = 20
 
 class Agent:
     def __init__(self):
-        self.env = gym.make(ENV_NAME, is_slippery=False)
+        self.env = gym.make(ENV_NAME, is_slippery = True)
         self.state = self.env.reset()
-        self.q_table = defaultdict(float)
-        self.n_states = self.env.observation_space.n
-        self.n_actions = self.env.action_space.n
+        self.q_table = np.zeros((self.env.observation_space.n, self.env.action_space.n))
         self.actions = {0 : "Left", 1: "Down", 2 : "Right", 3 : "Up"}
 
     def sample_env(self):
@@ -27,13 +26,15 @@ class Agent:
         old_state = self.state
         if terminated or truncated:
             self.state = self.env.reset()
+        else:
+            self.state = new_state
         return old_state, action, reward, new_state
 
     def best_value_and_action(self, state):
         best_value, best_action = None, None
         state = state[0] if type(state) is tuple else state
-        for action in range(self.n_actions):
-            q_value = self.q_table[(state, action)]
+        for action in range(self.env.action_space.n):
+            q_value = self.q_table[state][action]
             if best_value is None or q_value > best_value:
                 best_value, best_action = q_value, action
         return best_value, best_action
@@ -41,8 +42,9 @@ class Agent:
     def value_update(self, state, action, reward, new_state):
         best_new_value, _ = self.best_value_and_action(new_state)
         state = state[0] if type(state) is tuple else state
-        new_q_value = self.q_table[(state, action)] + (ALPHA * (reward + GAMMA * best_new_value) - self.q_table[(state, action)])
-        self.q_table[(state, action)] = new_q_value
+        new_q_value = reward + (GAMMA * best_new_value) - self.q_table[state][action]
+        new_q_value = self.q_table[state][action] + (ALPHA * new_q_value)
+        self.q_table[state][action] = new_q_value
 
     def play_episode(self, env):
         total_reward = 0.0
@@ -52,19 +54,18 @@ class Agent:
             new_state, reward, terminated, truncated, _ = env.step(action)
             total_reward += reward
             if terminated or truncated:
-                state = env.reset()
                 break
             state = new_state
         return total_reward
 
     def print_values(self):
         print("Values:")
-        headers = ["State"] + [f"{self.actions[action]}" for action in range(self.n_actions)]
+        headers = ["State"] + [f"{self.actions[action]}" for action in range(self.env.action_space.n)]
         table_data = []
-        for state in range(self.n_states):
+        for state in range(self.env.observation_space.n):
             state_row = [f"{state}"]
-            for action in range(self.n_actions):
-                q_value = self.q_table[(state, action)]
+            for action in range(self.env.action_space.n):
+                q_value = self.q_table[state][action]
                 state_row.append(f"{q_value:.3f}")
             table_data.append(state_row)
         print(tabulate(table_data, headers, tablefmt="grid"))
@@ -74,20 +75,24 @@ class Agent:
         print("Policy:")
         policy = {}
         policy_grid = [['' for _ in range(4)] for _ in range(4)]
-        for state in range(self.n_states):
+        for state in range(self.env.observation_space.n):
             row, col = divmod(state, 4)
             _, best_action = self.best_value_and_action(state)
             policy_grid[row][col] = self.actions[best_action]
             policy[state] = self.actions[best_action]
         for row in range(4):
             for col in range(4):
+                if (row == 1 and col == 1) or (row == 1 and col == 3) or (row == 2 and col == 3) or (row == 3 and col == 0):
+                    policy_grid[row][col] = "HOLE"
+                elif row == 3 and col == 3:
+                    policy_grid[row][col] = "GOAL"
                 print(f"{policy_grid[row][col]:<6}", end=" ")
             print()
         print()
         return policy
 
 if __name__ == "__main__":
-    test_env = gym.make(ENV_NAME, render_mode = "human", is_slippery=False)
+    test_env = gym.make(ENV_NAME, is_slippery = True)
     agent = Agent()
     writer = SummaryWriter(comment="-q-learning")
 
