@@ -6,7 +6,6 @@ import gymnasium as gym
 import numpy as np
 from tensorboardX import SummaryWriter
 from tabulate import tabulate
-from random import random
 
 ENV_NAME = "FrozenLake-v1"
 GAMMA = 0.9
