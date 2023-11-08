@@ -67,12 +67,12 @@ class DQN(nn.Module):
 
 # Hyperparameters
 BATCH_SIZE = 128
-GAMMA = 0.999
+GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 200
+EPS_DECAY = 20
 TAU = 0.001
-LR = 0.001
+LR = 0.0001
 # Get number of actions from gym action space
 n_actions = env.action_space.n
 # Get the number of state observations
@@ -212,6 +212,7 @@ def main():
                 break
 
     print("Complete")
+    print("Average Duration:", sum(episode_durations) / len(episode_durations))
     plot_durations(show_result=True)
     plt.ioff()
     plt.show()
