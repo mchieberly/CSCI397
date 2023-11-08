@@ -93,11 +93,16 @@ steps_done = 0
 def select_action(state):
     global steps_done
     sample = random.random()
+
+    # Calculate the epsilon threshold for exploring
     eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1 * steps_done / EPS_DECAY)
+    
     if sample > eps_threshold:
+        # Exploitation
         with torch.no_grad():
             return policy_net(state).max(1)[1].view(1, 1)
     else:
+        # Exploration
         return torch.tensor([[random.randrange(n_actions)]], device = device, dtype = torch.long)
     
 episode_durations = []
@@ -129,11 +134,13 @@ def plot_durations(show_result=False):
             display.display(plt.gcf())
 
 def optimize_model():
+    # Check memory capacity
     if len(memory) < BATCH_SIZE:
         return
     transitions = memory.sample(BATCH_SIZE)
     batch = Transition(*zip(*transitions))
 
+    # Prepare batch data by removing any None values
     non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
                                             batch.next_state)), device=device, dtype=torch.bool)
     non_final_next_states = torch.cat([s for s in batch.next_state
@@ -142,12 +149,16 @@ def optimize_model():
     action_batch = torch.cat(batch.action)
     reward_batch = torch.cat(batch.reward)
 
+    # Compute the q-values and expected q-values
     state_action_values = policy_net(state_batch).gather(1, action_batch)
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
     next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
 
+    # Compute the Huber loss
     loss = torch_functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+    
+    # Optimize the network and clip the gradient
     optimizer.zero_grad()
     loss.backward()
     for param in policy_net.parameters():
