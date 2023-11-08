@@ -74,10 +74,10 @@ EPS_DECAY = 200
 TAU = 0.001
 LR = 0.001
 # Get number of actions from gym action space
-n_actions = 
+n_actions = env.action_space.n
 # Get the number of state observations
-state, info = 
-n_observations = 
+state, info = env.reset()
+n_observations = env.observation_space.n
 
 # Initialize DQN policy and target networks
 policy_net = DQN(n_observations, n_actions).to(device)
@@ -93,21 +93,13 @@ steps_done = 0
 def select_action(state):
     global steps_done
     sample = random.random()
-    # TODO: Implement epsilon-greedy action selection
-    eps_threshold = # threshold
+    eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1 * steps_done / EPS_DECAY)
     if sample > eps_threshold:
         with torch.no_grad():
-            # Pass the current state through the policy network to get the Q-values for all actions.
-            # Find the action with the highest Q-value.
-            # Extract the index of that action (since the index corresponds to the action in a discrete action space).
-            # Reshapes the index into a tensor with shape (1, 1), which can be used for further processing or as an input to another function.
+            return policy_net(state).max(1)[1].view(1, 1)
     else:
-        # Creates a new PyTorch tensor.
-        # Generate a nested list with a single element, which is a random sample from the environment's action space.
-        # Place the tensor on the specified device (CPU or GPU).
-        # Set the data type of the tensor to a 64-bit integer.
+        return torch.tensor([[random.randrange(n_actions)]], device = device, dtype = torch.long)
     
-
 episode_durations = []
 
 # Define function to plot episode durations
