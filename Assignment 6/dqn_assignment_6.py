@@ -61,8 +61,8 @@ class DQN(nn.Module):
 
     # Define forward pass
     def forward(self, x):
-        x = torch_functional.relu(self.hl1(x))
-        x = torch_functional.relu(self.hl2(x))
+        x = torch_functional.leaky_relu(self.hl1(x))
+        x = torch_functional.leaky_relu(self.hl2(x))
         return self.hl3(x)
 
 # Hyperparameters
@@ -169,7 +169,7 @@ def main():
     if torch.cuda.is_available():
         num_episodes = 600
     else:
-        num_episodes = 50
+        num_episodes = 500
 
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
