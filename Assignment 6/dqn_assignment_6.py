@@ -1,3 +1,6 @@
+# Malachi Eberly
+# Assignment 6: Implement Deep Q-Learning
+
 import gymnasium as gym
 import math
 import os
@@ -52,25 +55,24 @@ class DQN(nn.Module):
     # Initialize DQN layers
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
-        # TODO: Define network layers
-        # TODO: Experiment with number of layers and neurons per layer
-        
+        self.hl1 = nn.Linear(inputs, 128)
+        self.hl1 = nn.Linear(128, 256)
+        self.hl1 = nn.Linear(256, outputs)
 
     # Define forward pass
     def forward(self, x):
-        # TODO: Implement the forward pass
-        # TODO: Experiment with different activation functions
-        
+        x = torch_functional.relu(self.hl1(x))
+        x = torch_functional.relu(self.hl2(x))
+        return self.hl3(x)
 
-# Hyperparameters (TODO: Define appropriate values)
-BATCH_SIZE = # Batch size
-GAMMA = # Discount factor
-EPS_START = # Starting value of epsilon
-EPS_END = # Minimum value of epsilon
-EPS_DECAY = # Rate of decay for epsilon
-TAU = # Target network update rate
-LR = # Learning rate
-
+# Hyperparameters
+BATCH_SIZE = 128
+GAMMA = 0.999
+EPS_START = 0.9
+EPS_END = 0.05
+EPS_DECAY = 200
+TAU = 0.001
+LR = 0.001
 # Get number of actions from gym action space
 n_actions = 
 # Get the number of state observations
@@ -92,7 +94,7 @@ def select_action(state):
     global steps_done
     sample = random.random()
     # TODO: Implement epsilon-greedy action selection
-    # TODO: define epsilon threshold
+    eps_threshold = # threshold
     if sample > eps_threshold:
         with torch.no_grad():
             # Pass the current state through the policy network to get the Q-values for all actions.
