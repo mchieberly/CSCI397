@@ -56,8 +56,8 @@ class DQN(nn.Module):
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
         self.hl1 = nn.Linear(inputs, 128)
-        self.hl1 = nn.Linear(128, 256)
-        self.hl1 = nn.Linear(256, outputs)
+        self.hl2 = nn.Linear(128, 256)
+        self.hl3 = nn.Linear(256, outputs)
 
     # Define forward pass
     def forward(self, x):
@@ -77,7 +77,7 @@ LR = 0.001
 n_actions = env.action_space.n
 # Get the number of state observations
 state, info = env.reset()
-n_observations = env.observation_space.n
+n_observations = len(state)
 
 # Initialize DQN policy and target networks
 policy_net = DQN(n_observations, n_actions).to(device)
@@ -129,45 +129,30 @@ def plot_durations(show_result=False):
             display.display(plt.gcf())
 
 def optimize_model():
-    # TODO: Implement optimization step
-    # If length of memory is less than batch size, return
-    # Convert batch-array of Transitions to Transition of batch-arrays.
+    if len(memory) < BATCH_SIZE:
+        return
+    transitions = memory.sample(BATCH_SIZE)
     batch = Transition(*zip(*transitions))
-    # Compute a mask of non-final states and concatenate the batch elements
-    non_final_mask = torch.tensor(
-        tuple(map(lambda s: s is not None, batch.next_state)),
-        device=device,
-        dtype=torch.bool,
-    )
-    # Create a list comprehension that filters out None values from batch.next_state.
-    # Concatenates the remaining tensors in the list into a single tensor.
-    # The resulting tensor non_final_next_states contains all the next state tensors for non-terminal states in the batch.
-    # Concatenates tensors from batch.state into a single tensor.
-    # The resulting tensor state_batch contains all state tensors in the batch.
-    # Concatenates tensors from batch.action into a single tensor.
-    # The resulting tensor action_batch contains all action tensors in the batch.
-    # Concatenates tensors from batch.reward into a single tensor.
-    # The resulting tensor reward_batch contains all reward tensors in the batch.
 
-    # Pass the state_batch tensor through the policy_net neural network to get Q-values for all actions.
-    # Gather specific Q-values from the result tensor. The 1 indicates that we're selecting values along the action dimension (for each state in the batch).
-    # The resulting tensor holding the Q-values corresponding to the actions that were actually taken in each state.
+    non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                            batch.next_state)), device=device, dtype=torch.bool)
+    non_final_next_states = torch.cat([s for s in batch.next_state
+                                       if s is not None])
+    state_batch = torch.cat(batch.state)
+    action_batch = torch.cat(batch.action)
+    reward_batch = torch.cat(batch.reward)
 
-    # Initialize a tensor for the next state values with zeros for all batch entries.
+    state_action_values = policy_net(state_batch).gather(1, action_batch)
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
-    # Without gradient calculation for efficiency,
-    # update the values for non-final states using the maximum predicted Q-value
-    # from the target network, ensuring final states remain zero.
-    with torch.no_grad():
-        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0]
-    
-    # Compute the expected Q values
+    next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
+    expected_state_action_values = (next_state_values * GAMMA) + reward_batch
 
-    # Compute Huber loss
-
-    # Optimize the model
-
-    # In-place gradient clipping
+    loss = torch_functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+    optimizer.zero_grad()
+    loss.backward()
+    for param in policy_net.parameters():
+        param.grad.data.clamp_(-1, 1)
+    optimizer.step()
 
 def main():
     if torch.cuda.is_available():
@@ -178,7 +163,7 @@ def main():
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         state, info = env.reset()
-        state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         for t in count():
             action = select_action(state)
             observation, reward, terminated, truncated, _ = env.step(action.item())
@@ -219,3 +204,6 @@ def main():
     plot_durations(show_result=True)
     plt.ioff()
     plt.show()
+
+if __name__ == "__main__":
+    main()
