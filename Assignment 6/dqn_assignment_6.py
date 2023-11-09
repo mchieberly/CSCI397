@@ -55,24 +55,26 @@ class DQN(nn.Module):
     # Initialize DQN layers
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
-        self.hl1 = nn.Linear(inputs, 128)
-        self.hl2 = nn.Linear(128, 256)
-        self.hl3 = nn.Linear(256, outputs)
+        self.hl1 = nn.Linear(inputs, 256)
+        self.hl2 = nn.Linear(256, 512)
+        self.hl3 = nn.Linear(512, 256)
+        self.hl4 = nn.Linear(256, outputs)
 
     # Define forward pass
     def forward(self, x):
         x = torch_functional.leaky_relu(self.hl1(x))
         x = torch_functional.leaky_relu(self.hl2(x))
-        return self.hl3(x)
+        x = torch_functional.leaky_relu(self.hl3(x))
+        return self.hl4(x)
 
 # Hyperparameters
-BATCH_SIZE = 128
-GAMMA = 0.99
-EPS_START = 0.9
-EPS_END = 0.05
-EPS_DECAY = 20
+BATCH_SIZE = 64
+GAMMA = 0.97
+EPS_START = 0.99
+EPS_END = 0.001
+EPS_DECAY = 0.99
 TAU = 0.001
-LR = 0.0001
+LR = 0.00025
 # Get number of actions from gym action space
 n_actions = env.action_space.n
 # Get the number of state observations
@@ -169,7 +171,7 @@ def main():
     if torch.cuda.is_available():
         num_episodes = 600
     else:
-        num_episodes = 500
+        num_episodes = 10000
 
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
