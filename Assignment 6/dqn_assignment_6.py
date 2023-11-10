@@ -55,26 +55,24 @@ class DQN(nn.Module):
     # Initialize DQN layers
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
-        self.hl1 = nn.Linear(inputs, 256)
-        self.hl2 = nn.Linear(256, 512)
-        self.hl3 = nn.Linear(512, 256)
-        self.hl4 = nn.Linear(256, outputs)
+        self.hl1 = nn.Linear(inputs, 128)
+        self.hl2 = nn.Linear(128, 256)
+        self.hl3 = nn.Linear(256, outputs)
 
     # Define forward pass
     def forward(self, x):
         x = torch_functional.leaky_relu(self.hl1(x))
         x = torch_functional.leaky_relu(self.hl2(x))
-        x = torch_functional.leaky_relu(self.hl3(x))
-        return self.hl4(x)
+        return self.hl3(x)
 
 # Hyperparameters
-BATCH_SIZE = 64
-GAMMA = 0.97
+BATCH_SIZE = 128
+GAMMA = 0.99
 EPS_START = 0.99
-EPS_END = 0.001
-EPS_DECAY = 0.99
+EPS_END = 0.05
+EPS_DECAY = 200
 TAU = 0.001
-LR = 0.00025
+LR = 0.001
 # Get number of actions from gym action space
 n_actions = env.action_space.n
 # Get the number of state observations
@@ -159,7 +157,7 @@ def optimize_model():
 
     # Compute the Huber loss
     loss = torch_functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
-    
+
     # Optimize the network and clip the gradient
     optimizer.zero_grad()
     loss.backward()
@@ -169,9 +167,9 @@ def optimize_model():
 
 def main():
     if torch.cuda.is_available():
-        num_episodes = 600
-    else:
         num_episodes = 10000
+    else:
+        num_episodes = 50
 
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
