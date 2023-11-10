@@ -56,8 +56,8 @@ class DQN(nn.Module):
     def __init__(self, inputs, outputs):
         super(DQN, self).__init__()
         self.hl1 = nn.Linear(inputs, 128)
-        self.hl2 = nn.Linear(128, 256)
-        self.hl3 = nn.Linear(256, outputs)
+        self.hl2 = nn.Linear(128, 128)
+        self.hl3 = nn.Linear(128, outputs)
 
     # Define forward pass
     def forward(self, x):
@@ -71,7 +71,7 @@ GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 1000
-TAU = 0.001
+TAU = 0.005
 LR = 0.0001
 # Get number of actions from gym action space
 n_actions = env.action_space.n
@@ -95,8 +95,9 @@ def select_action(state):
     sample = random.random()
 
     # Calculate the epsilon threshold for exploring
-    eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1 * steps_done / EPS_DECAY)
+    eps_threshold = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
     
+    steps_done += 1
     if sample > eps_threshold:
         # Exploitation
         with torch.no_grad():
@@ -175,7 +176,7 @@ def main():
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         state, info = env.reset()
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
         for t in count():
             action = select_action(state)
             observation, reward, terminated, truncated, _ = env.step(action.item())
