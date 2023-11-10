@@ -61,18 +61,18 @@ class DQN(nn.Module):
 
     # Define forward pass
     def forward(self, x):
-        x = torch_functional.leaky_relu(self.hl1(x))
-        x = torch_functional.leaky_relu(self.hl2(x))
+        x = torch_functional.relu(self.hl1(x))
+        x = torch_functional.relu(self.hl2(x))
         return self.hl3(x)
 
 # Hyperparameters
 BATCH_SIZE = 128
 GAMMA = 0.99
-EPS_START = 0.99
+EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 200
+EPS_DECAY = 1000
 TAU = 0.001
-LR = 0.001
+LR = 0.0001
 # Get number of actions from gym action space
 n_actions = env.action_space.n
 # Get the number of state observations
@@ -103,7 +103,7 @@ def select_action(state):
             return policy_net(state).max(1)[1].view(1, 1)
     else:
         # Exploration
-        return torch.tensor([[random.randrange(n_actions)]], device = device, dtype = torch.long)
+        return torch.tensor([[env.action_space.sample()]], device=device, dtype=torch.long)
     
 episode_durations = []
 
@@ -152,24 +152,25 @@ def optimize_model():
     # Compute the q-values and expected q-values
     state_action_values = policy_net(state_batch).gather(1, action_batch)
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
-    next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
+    with torch.no_grad():
+        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0]
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
 
     # Compute the Huber loss
-    loss = torch_functional.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+    crit = nn.SmoothL1Loss()
+    loss = crit(state_action_values, expected_state_action_values.unsqueeze(1))
 
     # Optimize the network and clip the gradient
     optimizer.zero_grad()
     loss.backward()
-    for param in policy_net.parameters():
-        param.grad.data.clamp_(-1, 1)
+    torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
     optimizer.step()
 
 def main():
     if torch.cuda.is_available():
         num_episodes = 10000
     else:
-        num_episodes = 50
+        num_episodes = 500
 
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
