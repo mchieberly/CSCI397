@@ -19,7 +19,7 @@ import torch.nn.functional as torch_functional
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # Create the environment with Gym
-env = gym.make("CartPole-v1", render_mode = "human")
+env = gym.make("CartPole-v1")
 
 # Set up matplotlib for dynamic plots
 is_ipython = "inline" in matplotlib.get_backend()
