@@ -19,7 +19,7 @@ import torch.nn.functional as torch_functional
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 # Create the environment with Gym
-env = gym.make("CartPole-v1")
+env = gym.make("CartPole-v1", render_mode = "human")
 
 # Set up matplotlib for dynamic plots
 is_ipython = "inline" in matplotlib.get_backend()
@@ -169,9 +169,9 @@ def optimize_model():
 
 def main():
     if torch.cuda.is_available():
-        num_episodes = 10000
-    else:
         num_episodes = 500
+    else:
+        num_episodes = 100
 
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
