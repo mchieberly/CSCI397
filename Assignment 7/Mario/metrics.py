@@ -2,6 +2,9 @@ import numpy as np
 import time, datetime
 import matplotlib.pyplot as plt
 
+"""
+Class for logging 
+"""
 class MetricLogger():
     def __init__(self, save_dir):
         self.save_log = save_dir / "log"

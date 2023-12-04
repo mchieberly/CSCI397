@@ -5,6 +5,9 @@ from skimage import transform
 
 from gym.spaces import Box
 
+"""
+Resize the obeservation into a gym format
+"""
 class ResizeObservation(gym.ObservationWrapper):
     def __init__(self, env, shape):
         super().__init__(env)
@@ -23,6 +26,9 @@ class ResizeObservation(gym.ObservationWrapper):
         return resize_obs
 
 
+"""
+Skip frame functionality
+"""
 class SkipFrame(gym.Wrapper):
     def __init__(self, env, skip):
         super().__init__(env)
